@@ -11,15 +11,18 @@
 @interface DVTTextDocumentLocation : NSObject
 @property (readonly) NSRange characterRange;
 @property (readonly) NSRange lineRange;
+- (id)initWithDocumentURL:(id)a0 timestamp:(id)a1 lineRange:(_NSRange)a2;
 @end
 
 @interface IDESourceCodeComparisonEditor : NSObject
 @property (readonly) NSTextView *keyTextView;
 @end
 
-@interface IDESourceCodeEditor : NSObject
+@interface IDESourceCodeEditor : NSObject <NSTextViewDelegate>
 
+@property (retain) NSDocument *document; // T@"IDEEditorDocument",&,V_document
 @property (retain) NSTextView *textView;
+
 - (long)_currentOneBasedLineNubmer;
 - (long)_currentOneBasedLineNumber;
 - (id)_documentLocationForLineNumber:(long)a0;
