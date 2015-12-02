@@ -4,7 +4,7 @@
 //
 //  Repo: https://github.com/johnno1962/GitDiff
 //
-//  $Id: //depot/GitDiff/Classes/GitDiff.mm#75 $
+//  $Id: //depot/GitDiff/Classes/GitDiff.mm#77 $
 //
 //  Created by John Holdsworth on 26/07/2014.
 //  Copyright (c) 2014 John Holdsworth. All rights reserved.
@@ -465,7 +465,8 @@ static void handler( int sig ) {
 
             popover.frame = NSMakeRect(NSWidth(self.frame)+1., a0.origin.y, w, h);
 
-            [self performSelector:@selector(showUndo) withObject:nil afterDelay:1.];
+            [self performSelector:@selector(showUndo) withObject:nil
+                       afterDelay:gitDiffPlugin.colorsWindowController.undoButtonDelay.floatValue];
             [self.scrollView addSubview:popover];
             return annotation;
         }
@@ -487,8 +488,8 @@ static void handler( int sig ) {
 
         CGRect a0, a1;
         [self getParagraphRect:&a0 firstLineRect:&a1 forLineNumber:gitDiffPlugin.undoRange.location];
-        CGFloat height = a0.size.height;
-        undoButton.frame = NSMakeRect( self.sidebarWidth-2.0-height, a0.origin.y, height, height );
+        CGFloat width = 13.0, height = a0.size.height;
+        undoButton.frame = NSMakeRect( self.sidebarWidth-2.0-width, a0.origin.y, width, height );
         [self.scrollView addSubview:undoButton];
     }
 }
@@ -496,6 +497,14 @@ static void handler( int sig ) {
 - (void)performUndo:(NSButton *)sender {
     IDESourceCodeEditor *editor = [GitChangeManager currentEditor];
     NSRange safeRange = NSMakeRange( gitDiffPlugin.undoRange.location-1, MAX(gitDiffPlugin.undoRange.length,1) );
+
+    if ( [[NSAlert alertWithMessageText:@"GitDiff Plugin:"
+                          defaultButton:@"Revert to staged" alternateButton:@"Cancel" otherButton:nil
+              informativeTextWithFormat:@"Revert code at lines %d-%d to staged version?",
+           (int)safeRange.location+1, (int)(safeRange.location+safeRange.length)]
+          runModal] == NSAlertAlternateReturn )
+        return;
+
     DVTTextDocumentLocation *location = [[gitDiffPlugin.locationClass alloc] initWithDocumentURL:editor.document.fileURL
                                                                                        timestamp:nil lineRange:safeRange];
     [editor selectAndHighlightDocumentLocations:@[location]];
@@ -540,14 +549,14 @@ static void handler( int sig ) {
             NSColor *highlight = exists( diffs->modified, line ) ? modifiedColor : addedColor;
 
             [highlight setFill];
-            NSRectFill( NSMakeRect(0, line*scale, 3., 1.) );
+            NSRectFill( NSMakeRect(0, line*scale, 3., 2.) );
         }
 
         [gitDiffPlugin.colorsWindowController.deletedColor setFill];
         for ( const auto &deleted : diffs->deleted ) {
             NSUInteger line = deleted.first;
             if ( !exists( diffs->added, line ) ) {
-                NSRectFill( NSMakeRect(0, line*scale, 3., 1.) );
+                NSRectFill( NSMakeRect(0, line*scale, 3., 2.) );
             }
         }
     }
